@@ -23,5 +23,14 @@ class UserTableSeeder extends Seeder
         ]);
 
         $user->assignRole($role);
+
+        $cashierUser = User::create([
+            'name' => 'Kasir 1',
+            'email' => 'kasir1@pos.com',
+            'password' => bcrypt('password'),
+        ]);
+
+        $cashierUser->assignRole('cashier');
+
     }
 }

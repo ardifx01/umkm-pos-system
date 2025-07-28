@@ -15,11 +15,16 @@ class PermissionTableSeeder extends Seeder
     {
         collect([
             'dashboard-access', 'dashboard-data',
-            'permissions-access', 'permissions-data', 'permissions-create', 'permissions-update', 'permissions-delete',
-            'roles-access', 'roles-data', 'roles-create', 'roles-update', 'roles-delete',
-            'users-access', 'users-data', 'users-create', 'users-update', 'users-delete',
+            // Products
             'products-access', 'products-data', 'products-create', 'products-update', 'products-delete',
+            // Sales
             'sales-access', 'sales-data', 'sales-create', 'sales-update', 'sales-delete',
+            // Permissions
+            'permissions-access', 'permissions-data', 'permissions-create', 'permissions-update', 'permissions-delete',
+            // Roles
+            'roles-access', 'roles-data', 'roles-create', 'roles-update', 'roles-delete',
+            // Users
+            'users-access', 'users-data', 'users-create', 'users-update', 'users-delete',
         ])->each(fn($item) => Permission::create(['name' => $item]));
     }
 }
