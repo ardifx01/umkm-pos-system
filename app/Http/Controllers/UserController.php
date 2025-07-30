@@ -89,6 +89,14 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('success', 'User updated.');
     }
 
+    public function show(User $user)
+    {
+        return Inertia::render('Users/Show', [
+            'user' => $user->load('roles'),
+            'auth' => auth()->user(),
+        ]);
+    }
+
     public function destroy(User $user)
     {
         $user->delete();

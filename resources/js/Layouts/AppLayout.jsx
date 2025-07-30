@@ -8,8 +8,9 @@ export default function AppLayout({ children, user }) {
     <div className="flex min-h-screen bg-gray-900">
       <Sidebar />
 
-      <main className="flex-1 bg-gray-50">
-        <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4 mb-6">
+      {/* Main content with left margin to account for fixed sidebar */}
+      <main className="flex-1 ml-64 bg-gray-50 min-h-screen">
+        <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4 mb-6 sticky top-0 z-30">
           <div className="flex justify-between items-center">
             <h1 className="text-xl font-semibold text-gray-800">Selamat Datang</h1>
             <Link 
@@ -26,7 +27,8 @@ export default function AppLayout({ children, user }) {
           </div>
         </header>
 
-        <div className="px-6">
+        {/* Scrollable content area */}
+        <div className="px-6 pb-6">
           {children}
         </div>
       </main>
