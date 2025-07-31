@@ -12,11 +12,17 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $search = $request->query('search');
+        $roleFilter = $request->query('role'); 
 
         $users = User::with('roles')
             ->when($search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
+            })
+            ->when($roleFilter, function ($query, $roleFilter) {
+                $query->whereHas('roles', function($q) use ($roleFilter) {
+                    $q->where('name', $roleFilter); 
+                }); 
             })
             ->orderBy('created_at', 'desc')
             ->paginate(10) // Bisa ubah jumlah per halaman
@@ -25,6 +31,7 @@ class UserController extends Controller
         return inertia('Users/Index', [
             'auth' => auth()->user(),
             'users' => $users,
+            'roles' => Role::all(['id', 'name']), 
             'filters' => [
                 'search' => $search
             ],

@@ -1,15 +1,28 @@
 // resources/js/Pages/Roles/Index.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { Search, Plus, Edit, Trash2, Shield, Eye } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
 
-export default function Index({ auth, roles, flash }) {
-  const [search, setSearch] = useState('');
+export default function Index({ auth, roles, filters, flash }) {
+  const [search, setSearch] = useState(filters?.search || '');
 
-  // Filter roles berdasarkan search
-  const filteredRoles = roles.filter(role =>
-    role.name.toLowerCase().includes(search.toLowerCase())
-  );
+  // Handle search dengan debounce
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      router.get('/roles', 
+        { 
+          search: search || undefined
+        }, 
+        { 
+          preserveState: true,
+          replace: true 
+        }
+      );
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [search]);
 
   const handleDelete = (role) => {
     if (confirm(`Apakah Anda yakin ingin menghapus role ${role.name}?`)) {
@@ -17,159 +30,183 @@ export default function Index({ auth, roles, flash }) {
     }
   };
 
+  const filteredRoles = roles.filter(role => 
+    role.name.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <AppLayout user={auth.user}>
       <Head title="Manajemen Roles" />
 
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Manajemen Roles</h1>
-            <p className="text-gray-600 mt-1">Kelola peran dan hak akses sistem</p>
+      <div className="min-h-screen bg-white py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header Section */}
+          <div className="border-b border-gray-200 pb-6 mb-8">
+            <div className="flex justify-between items-start">
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900">Roles & Permissions</h1>
+                <p className="text-gray-600 mt-2">
+                  Kelola role pengguna dan izin akses dalam sistem.
+                </p>
+              </div>
+              <Link
+                href="/roles/create"
+                className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-md font-medium inline-flex items-center"
+              >
+                <Plus size={16} className="mr-2" />
+                Add role
+              </Link>
+            </div>
           </div>
-          <Link
-            href="/roles/create"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Tambah Role
-          </Link>
-        </div>
 
-        {/* Flash Messages */}
-        {flash?.success && (
-          <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
-            {flash.success}
-          </div>
-        )}
+          {/* Flash Messages */}
+          {flash?.success && (
+            <div className="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md">
+              <div className="flex items-center">
+                <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center mr-3">
+                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium">{flash.success}</span>
+              </div>
+            </div>
+          )}
 
-        {/* Search */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
+          {/* Filters Section */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              {/* Search Input */}
               <div className="relative">
-                <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                 <input
                   type="text"
-                  placeholder="Cari berdasarkan nama role..."
+                  placeholder="Search roles"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-gray-900 focus:border-gray-900 text-sm"
                 />
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Roles Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredRoles.length === 0 ? (
-            <div className="col-span-full bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-              <div className="flex flex-col items-center text-center">
-                <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Tidak ada role yang ditemukan</h3>
-                <p className="text-gray-500 mb-4">
-                  {search ? 'Coba ubah kata kunci pencarian Anda' : 'Belum ada role yang dibuat'}
-                </p>
-                {!search && (
-                  <Link
-                    href="/roles/create"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
-                  >
-                    Buat Role Pertama
-                  </Link>
-                )}
-              </div>
+            
+            {/* Results Count */}
+            <div className="text-sm text-gray-700">
+              <span className="font-medium">{filteredRoles.length}</span> roles
             </div>
-          ) : (
-            filteredRoles.map((role) => (
-              <div key={role.id} className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                <div className="p-6">
-                  {/* Role Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
-                      </div>
-                      <div className="ml-3">
-                        <h3 className="text-lg font-semibold text-gray-900 capitalize">{role.name}</h3>
-                        <p className="text-sm text-gray-500">
-                          {role.permissions.length} permission{role.permissions.length !== 1 ? 's' : ''}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-1">
-                      <Link
-                        href={`/roles/${role.id}/edit`}
-                        className="text-blue-600 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50 transition-colors duration-200"
-                        title="Edit Role"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(role)}
-                        className="text-red-600 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 transition-colors duration-200"
-                        title="Hapus Role"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
+          </div>
 
-                  {/* Permissions */}
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Permissions:</h4>
-                    {role.permissions.length === 0 ? (
-                      <p className="text-sm text-gray-500 italic">Tidak ada permission</p>
-                    ) : (
-                      <div className="flex flex-wrap gap-2">
-                        {role.permissions.slice(0, 4).map((permission) => (
-                          <span
-                            key={permission.id}
-                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
-                          >
-                            {permission.name}
-                          </span>
-                        ))}
-                        {role.permissions.length > 4 && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            +{role.permissions.length - 4} lainnya
-                          </span>
-                        )}
-                      </div>
-                    )}
+          {/* Roles Table */}
+          <div className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden">
+            {filteredRoles.length === 0 ? (
+              <div className="px-6 py-12 text-center">
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <Shield className="w-6 h-6 text-gray-400" />
                   </div>
-                </div>
-
-                {/* Card Footer */}
-                <div className="bg-gray-50 px-6 py-3 rounded-b-lg">
-                  <div className="flex justify-end items-center">
-                    <Link
-                      href={`/roles/${role.id}/edit`}
-                      className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-                    >
-                      Lihat Detail →
-                    </Link>
-                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Tidak ada role ditemukan</h3>
+                  <p className="text-gray-500">Coba ubah kata kunci pencarian atau tambah role baru</p>
                 </div>
               </div>
-            ))
-          )}
+            ) : (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Role Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Permissions
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Permission Count
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date Created
+                    </th>
+                    <th className="relative px-6 py-3">
+                      <span className="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredRoles.map((role) => (
+                    <tr key={role.id} className="hover:bg-gray-50">
+                      {/* Role Name */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="h-10 w-10 flex-shrink-0">
+                            <div className="h-10 w-10 rounded-full bg-slate-600 flex items-center justify-center">
+                              <Shield className="w-5 h-5 text-white" />
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900 capitalize">{role.name}</div>
+                            <div className="text-sm text-gray-500">Role ID: {role.id}</div>
+                          </div>
+                        </div>
+                      </td>
+                      
+                      {/* Permissions List */}
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1 max-w-md">
+                          {role.permissions.slice(0, 3).map((permission) => (
+                            <span
+                              key={permission.id}
+                              className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800"
+                            >
+                              {permission.name}
+                            </span>
+                          ))}
+                          {role.permissions.length > 3 && (
+                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-600">
+                              +{role.permissions.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      
+                      {/* Permission Count */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-900 font-medium">
+                          {role.permissions.length}
+                        </span>
+                        <span className="text-sm text-gray-500 ml-1">permissions</span>
+                      </td>
+                      
+                      {/* Date */}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(role.created_at).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </td>
+                      
+                      {/* Actions */}
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end space-x-2">
+                          <Link
+                            href={`/roles/${role.id}/edit`}
+                            className="text-gray-400 hover:text-gray-900"
+                            title="Edit Role"
+                          >
+                            <Edit size={16} />
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(role)}
+                            className="text-gray-400 hover:text-red-600"
+                            title="Delete Role"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       </div>
     </AppLayout>

@@ -1,32 +1,23 @@
 // resources/js/Pages/Roles/Create.jsx
 import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { ArrowLeft, Shield, Check } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
 
 export default function Create({ auth, permissions }) {
   const { data, setData, post, processing, errors } = useForm({
     name: '',
-    permissions: [],
+    permissions: []
   });
 
-  const [searchPermission, setSearchPermission] = useState('');
+  const [selectAll, setSelectAll] = useState(false);
 
-  // Filter permissions berdasarkan search
-  const filteredPermissions = permissions.filter(permission =>
-    permission.name.toLowerCase().includes(searchPermission.toLowerCase())
-  );
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    post('/roles');
+  };
 
-  // Group permissions by prefix (assuming permissions follow pattern like 'users.create', 'posts.edit', etc.)
-  const groupedPermissions = filteredPermissions.reduce((groups, permission) => {
-    const prefix = permission.name.split('.')[0] || 'other';
-    if (!groups[prefix]) {
-      groups[prefix] = [];
-    }
-    groups[prefix].push(permission);
-    return groups;
-  }, {});
-
-  const handlePermissionToggle = (permissionId) => {
+  const handlePermissionChange = (permissionId) => {
     const updatedPermissions = data.permissions.includes(permissionId)
       ? data.permissions.filter(id => id !== permissionId)
       : [...data.permissions, permissionId];
@@ -34,220 +25,168 @@ export default function Create({ auth, permissions }) {
     setData('permissions', updatedPermissions);
   };
 
-  const handleGroupToggle = (groupPermissions) => {
-    const groupIds = groupPermissions.map(p => p.id);
-    const allSelected = groupIds.every(id => data.permissions.includes(id));
-    
-    if (allSelected) {
-      // Unselect all in group
-      setData('permissions', data.permissions.filter(id => !groupIds.includes(id)));
-    } else {
-      // Select all in group
-      const newPermissions = [...new Set([...data.permissions, ...groupIds])];
-      setData('permissions', newPermissions);
-    }
-  };
-
   const handleSelectAll = () => {
-    if (data.permissions.length === filteredPermissions.length) {
+    if (selectAll) {
       setData('permissions', []);
     } else {
-      setData('permissions', filteredPermissions.map(p => p.id));
+      setData('permissions', permissions.map(p => p.id));
     }
+    setSelectAll(!selectAll);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    post('/roles');
-  };
+  // Group permissions by category (assuming permission names follow pattern like 'user-create', 'user-read', etc.)
+  const groupedPermissions = permissions.reduce((groups, permission) => {
+    const category = permission.name.split('-')[0] || 'general';
+    if (!groups[category]) {
+      groups[category] = [];
+    }
+    groups[category].push(permission);
+    return groups;
+  }, {});
 
   return (
     <AppLayout user={auth.user}>
-      <Head title="Tambah Role" />
+      <Head title="Tambah Role Baru" />
 
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/roles"
-              className="text-gray-600 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Tambah Role</h1>
-              <p className="text-gray-600 mt-1">Buat role baru dengan permissions yang diperlukan</p>
-            </div>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Role Name */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Informasi Role</h2>
-            
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                Nama Role
-              </label>
-              <input
-                type="text"
-                id="name"
-                value={data.name}
-                onChange={(e) => setData('name', e.target.value)}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.name ? 'border-red-300' : 'border-gray-300'
-                }`}
-                placeholder="Masukkan nama role (contoh: Admin, Editor, User)"
-              />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-              )}
+      <div className="min-h-screen bg-white py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header Section */}
+          <div className="border-b border-gray-200 pb-6 mb-8">
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/roles"
+                className="text-gray-400 hover:text-gray-900"
+              >
+                <ArrowLeft size={20} />
+              </Link>
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900">Tambah Role Baru</h1>
+                <p className="text-gray-600 mt-2">
+                  Buat role baru dan tentukan izin akses yang sesuai.
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Permissions */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Permissions</h2>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">
-                  {data.permissions.length} dari {filteredPermissions.length} dipilih
-                </span>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Role Information */}
+            <div className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-lg font-medium text-gray-900">Informasi Role</h2>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6">
+                <div>
+                  <label htmlFor="role-name" className="block text-sm font-medium text-gray-900 mb-2">
+                    Nama Role *
+                  </label>
+                  <input
+                    id="role-name"
+                    type="text"
+                    value={data.name}
+                    onChange={(e) => setData('name', e.target.value)}
+                    className={`block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 ${
+                      errors.name 
+                        ? 'ring-red-300 focus:ring-red-500' 
+                        : 'ring-gray-300 focus:ring-gray-900'
+                    }`}
+                    placeholder="Contoh: Editor, Manager, Admin"
+                  />
+                  {errors.name && (
+                    <p className="mt-2 text-sm text-red-600">{errors.name}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Permissions */}
+            <div className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-medium text-gray-900">Izin Akses (Permissions)</h2>
                 <button
                   type="button"
                   onClick={handleSelectAll}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  className="text-sm text-gray-600 hover:text-gray-900 font-medium"
                 >
-                  {data.permissions.length === filteredPermissions.length ? 'Batalkan Semua' : 'Pilih Semua'}
+                  {selectAll ? 'Unselect All' : 'Select All'}
                 </button>
               </div>
-            </div>
 
-            {/* Search Permissions */}
-            <div className="mb-6">
-              <div className="relative">
-                <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Cari permissions..."
-                  value={searchPermission}
-                  onChange={(e) => setSearchPermission(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
+              {errors.permissions && (
+                <div className="mb-4 text-sm text-red-600">
+                  {errors.permissions}
+                </div>
+              )}
 
-            {/* Grouped Permissions */}
-            {Object.keys(groupedPermissions).length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <svg className="w-12 h-12 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <p>Tidak ada permissions yang ditemukan</p>
-              </div>
-            ) : (
               <div className="space-y-6">
-                {Object.entries(groupedPermissions).map(([group, groupPermissions]) => {
-                  const allSelected = groupPermissions.every(p => data.permissions.includes(p.id));
-                  const someSelected = groupPermissions.some(p => data.permissions.includes(p.id));
-                  
-                  return (
-                    <div key={group} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() => handleGroupToggle(groupPermissions)}
-                            className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                              allSelected
-                                ? 'bg-blue-600 border-blue-600 text-white'
-                                : someSelected
-                                ? 'bg-blue-100 border-blue-600'
-                                : 'border-gray-300'
-                            }`}
-                          >
-                            {allSelected && (
-                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
-                            )}
-                            {someSelected && !allSelected && (
-                              <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                            )}
-                          </button>
-                          <h3 className="text-lg font-medium text-gray-900 capitalize">
-                            {group}
-                          </h3>
-                          <span className="text-sm text-gray-500">
-                            ({groupPermissions.filter(p => data.permissions.includes(p.id)).length}/{groupPermissions.length})
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 ml-8">
-                        {groupPermissions.map((permission) => (
-                          <label
-                            key={permission.id}
-                            className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors duration-200"
-                          >
+                {Object.entries(groupedPermissions).map(([category, categoryPermissions]) => (
+                  <div key={category} className="border border-gray-200 rounded-lg p-4">
+                    <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 capitalize">
+                      {category}
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {categoryPermissions.map((permission) => (
+                        <label
+                          key={permission.id}
+                          className="relative flex items-center space-x-3 cursor-pointer group"
+                        >
+                          <div className="relative">
                             <input
                               type="checkbox"
                               checked={data.permissions.includes(permission.id)}
-                              onChange={() => handlePermissionToggle(permission.id)}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              onChange={() => handlePermissionChange(permission.id)}
+                              className="sr-only"
                             />
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">
-                                {permission.name}
-                              </div>
-                              {permission.description && (
-                                <div className="text-xs text-gray-500">
-                                  {permission.description}
-                                </div>
+                            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                              data.permissions.includes(permission.id)
+                                ? 'bg-gray-900 border-gray-900'
+                                : 'border-gray-300 group-hover:border-gray-400'
+                            }`}>
+                              {data.permissions.includes(permission.id) && (
+                                <Check className="w-3 h-3 text-white" />
                               )}
                             </div>
-                          </label>
-                        ))}
-                      </div>
+                          </div>
+                          <span className="text-sm text-gray-700 group-hover:text-gray-900 capitalize">
+                            {permission.name.replace(/-/g, ' ')}
+                          </span>
+                        </label>
+                      ))}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
-            )}
 
-            {errors.permissions && (
-              <p className="mt-4 text-sm text-red-600">{errors.permissions}</p>
-            )}
-          </div>
-
-          {/* Submit Buttons */}
-          <div className="flex items-center justify-end gap-4 bg-white px-6 py-4 rounded-lg shadow-sm border border-gray-200">
-            <Link
-              href="/roles"
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors duration-200"
-            >
-              Batal
-            </Link>
-            <button
-              type="submit"
-              disabled={processing}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
-            >
-              {processing && (
-                <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
+              {data.permissions.length > 0 && (
+                <div className="mt-4 p-3 bg-blue-50 rounded-md">
+                  <p className="text-sm text-blue-800">
+                    <span className="font-medium">{data.permissions.length}</span> permissions selected
+                  </p>
+                </div>
               )}
-              {processing ? 'Menyimpan...' : 'Simpan Role'}
-            </button>
-          </div>
-        </form>
+            </div>
+
+            {/* Submit Buttons */}
+            <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+              <Link
+                href="/roles"
+                className="px-6 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </Link>
+              <button
+                type="submit"
+                disabled={processing}
+                className="px-6 py-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {processing ? 'Creating...' : 'Create Role'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </AppLayout>
   );
