@@ -16,18 +16,20 @@ class UserTableSeeder extends Seeder
     {
         $role = Role::where('name', 'owner')->first();
 
-        $user = User::create([
+        $ownerUser = User::create([
             'name' => 'Septian',
             'email' => 'septian@dev.com',
             'password' => bcrypt('password'),
+            'phone' => '089663002695', 
         ]);
 
-        $user->assignRole($role);
+        $ownerUser->assignRole($role);
 
         $cashierUser = User::create([
             'name' => 'Kasir 1',
             'email' => 'kasir1@pos.com',
             'password' => bcrypt('password'),
+            'phone' => '089663002693',
         ]);
 
         $cashierUser->assignRole('cashier');

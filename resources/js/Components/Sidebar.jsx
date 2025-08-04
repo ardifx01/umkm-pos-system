@@ -11,7 +11,12 @@ import {
   Settings,
   ChevronDown,
   LogOut,
-  User
+  User,
+  ListFilterIcon,
+  UserCheck,
+  Truck,
+  ShoppingBag,
+  Package2
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -27,17 +32,47 @@ export default function Sidebar() {
       icon: LayoutDashboard,
       badge: null
     },
-    { 
+    {
       href: '/products', 
       label: 'Products', 
       icon: Package,
       badge: null
     },
+    {
+      href: '/categories', 
+      label: 'Categories', 
+      icon: ListFilterIcon, 
+      badge: null, 
+    },
     { 
       href: '/sales', 
-      label: 'Sales', 
+      label: 'Sales / POS', 
       icon: ShoppingCart,
       badge: '12' // Example badge
+    },
+    {
+      href: '/customers', 
+      label: 'Customers', 
+      icon: UserCheck,
+      badge: null
+    },
+    {
+      href: '/suppliers', 
+      label: 'Suppliers', 
+      icon: Truck,
+      badge: null
+    },
+    {
+      href: '/purchases', 
+      label: 'Purchases', 
+      icon: ShoppingBag,
+      badge: null
+    },
+    {
+      href: '/stock-movements', 
+      label: 'Stock Movements', 
+      icon: Package2,
+      badge: null
     },
     { 
       href: '/reports', 
@@ -57,13 +92,53 @@ export default function Sidebar() {
       icon: Shield,
       badge: null
     },
-    { 
-      href: '/settings', 
-      label: 'Settings', 
+    {
+      href: '/profile', 
+      label: 'Profile Settings', 
       icon: Settings,
       badge: null
     },
   ];
+
+  const renderMenuItem = (item) => {
+    const active = isActive(item.href);
+    const IconComponent = item.icon;
+    
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        className={`
+          flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative
+          ${active 
+            ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20' 
+            : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+          }
+        `}
+      >
+        <span className={`
+          transition-colors duration-200
+          ${active ? 'text-white' : 'text-slate-400 group-hover:text-emerald-400'}
+        `}>
+          <IconComponent size={20} strokeWidth={2} />
+        </span>
+        
+        <span className="flex-1">{item.label}</span>
+        
+        {/* Badge */}
+        {item.badge && (
+          <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full min-w-[20px] text-center">
+            {item.badge}
+          </span>
+        )}
+        
+        {/* Active indicator */}
+        {active && (
+          <div className="w-2 h-2 bg-white rounded-full"></div>
+        )}
+      </Link>
+    );
+  };
 
   return (
     <aside className="fixed left-0 top-0 z-40 w-64 h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 flex flex-col shadow-2xl">
@@ -85,58 +160,37 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 px-4 py-6 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+      <nav className="flex-1 px-4 py-6 overflow-y-auto custom-scrollbar">
         <div className="space-y-2">
-          {menuItems.map((item) => {
-            const active = isActive(item.href);
-            const IconComponent = item.icon;
-            
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`
-                  flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group relative overflow-hidden
-                  ${active 
-                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 transform scale-105' 
-                    : 'text-slate-300 hover:text-white hover:bg-slate-700/50 hover:transform hover:scale-105'
-                  }
-                `}
-              >
-                {/* Background gradient overlay for hover effect */}
-                <div className={`
-                  absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-emerald-600/10 opacity-0 transition-opacity duration-300
-                  ${!active ? 'group-hover:opacity-100' : ''}
-                `}></div>
-                
-                <span className={`
-                  relative z-10 transition-all duration-300
-                  ${active ? 'text-white transform scale-110' : 'text-slate-400 group-hover:text-emerald-400'}
-                `}>
-                  <IconComponent size={20} strokeWidth={2} />
-                </span>
-                
-                <span className="relative z-10 flex-1">{item.label}</span>
-                
-                {/* Badge */}
-                {item.badge && (
-                  <span className="relative z-10 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full min-w-[20px] text-center">
-                    {item.badge}
-                  </span>
-                )}
-                
-                {/* Active indicator */}
-                {active && (
-                  <div className="absolute right-2 w-2 h-2 bg-white rounded-full shadow-sm"></div>
-                )}
-                
-                {/* Subtle glow effect */}
-                {active && (
-                  <div className="absolute inset-0 bg-emerald-400/20 rounded-xl blur-xl"></div>
-                )}
-              </Link>
-            );
-          })}
+          {/* Main Navigation */}
+          <div className="mb-6">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-4">
+              Main
+            </h3>
+            <div className="space-y-1">
+              {menuItems.slice(0, 4).map(renderMenuItem)}
+            </div>
+          </div>
+
+          {/* Inventory Management */}
+          <div className="mb-6">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-4">
+              Inventory
+            </h3>
+            <div className="space-y-1">
+              {menuItems.slice(4, 8).map(renderMenuItem)}
+            </div>
+          </div>
+
+          {/* Administration */}
+          <div className="mb-6">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-4">
+              Administration
+            </h3>
+            <div className="space-y-1">
+              {menuItems.slice(8).map(renderMenuItem)}
+            </div>
+          </div>
         </div>
       </nav>
 
@@ -145,7 +199,7 @@ export default function Sidebar() {
         <div className="relative">
           <button
             onClick={() => setShowUserDropdown(!showUserDropdown)}
-            className="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all duration-300 cursor-pointer group border border-slate-700/30"
+            className="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 transition-all duration-200 group border border-slate-700/30"
           >
             <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center shadow-lg">
               <User size={18} className="text-white" />
@@ -156,32 +210,40 @@ export default function Sidebar() {
             </div>
             <ChevronDown 
               size={16} 
-              className={`text-slate-400 transition-transform duration-300 ${showUserDropdown ? 'rotate-180' : ''}`} 
+              className={`text-slate-400 transition-transform duration-200 ${showUserDropdown ? 'rotate-180' : ''}`} 
             />
           </button>
 
           {/* Dropdown Menu */}
           {showUserDropdown && (
-            <div className="absolute bottom-full left-0 right-0 mb-2 bg-slate-800 rounded-xl shadow-2xl border border-slate-700/50 overflow-hidden animate-in slide-in-from-bottom-2 duration-200">
+            <div className="absolute bottom-full left-0 right-0 mb-2 bg-slate-800 rounded-xl shadow-2xl border border-slate-700/50 overflow-hidden z-50">
               <div className="py-2">
-                <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors duration-200">
+                <Link 
+                  href="/profile"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors duration-200"
+                >
                   <User size={16} />
                   <span>Profile Settings</span>
-                </button>
+                </Link>
                 <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors duration-200">
                   <Settings size={16} />
                   <span>Preferences</span>
                 </button>
                 <div className="border-t border-slate-700/50 my-2"></div>
-                <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors duration-200">
+                <Link
+                  href="/logout"
+                  method="post"
+                  as="button"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors duration-200"
+                >
                   <LogOut size={16} />
                   <span>Sign Out</span>
-                </button>
+                </Link>
               </div>
             </div>
           )}
         </div>
       </div>
-    </aside>
+    </aside>  
   );
 }

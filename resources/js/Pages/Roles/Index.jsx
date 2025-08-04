@@ -1,16 +1,15 @@
-// resources/js/Pages/Roles/Index.jsx
 import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { Search, Plus, Edit, Trash2, Shield, Eye } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Shield, Eye, Users } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
 
-export default function Index({ auth, roles, filters, flash }) {
-  const [search, setSearch] = useState(filters?.search || '');
+export default function Index({ auth, roles, flash }) {
+  const [search, setSearch] = useState('');
 
   // Handle search dengan debounce
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      router.get('/roles', 
+      router.get(route('roles.index'), 
         { 
           search: search || undefined
         }, 
@@ -26,7 +25,13 @@ export default function Index({ auth, roles, filters, flash }) {
 
   const handleDelete = (role) => {
     if (confirm(`Apakah Anda yakin ingin menghapus role ${role.name}?`)) {
-      router.delete(`/roles/${role.id}`);
+      router.delete(route('roles.destroy', role.id), {
+        onError: (errors) => {
+          if (errors.error) {
+            alert(errors.error);
+          }
+        }
+      });
     }
   };
 
@@ -50,7 +55,7 @@ export default function Index({ auth, roles, filters, flash }) {
                 </p>
               </div>
               <Link
-                href="/roles/create"
+                href={route('roles.create')}
                 className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-md font-medium inline-flex items-center"
               >
                 <Plus size={16} className="mr-2" />
@@ -69,6 +74,19 @@ export default function Index({ auth, roles, filters, flash }) {
                   </svg>
                 </div>
                 <span className="text-sm font-medium">{flash.success}</span>
+              </div>
+            </div>
+          )}
+
+          {flash?.error && (
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md">
+              <div className="flex items-center">
+                <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center mr-3">
+                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium">{flash.error}</span>
               </div>
             </div>
           )}
@@ -115,13 +133,10 @@ export default function Index({ auth, roles, filters, flash }) {
                       Role Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Permissions
+                      Users Count
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Permission Count
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date Created
+                      Created At
                     </th>
                     <th className="relative px-6 py-3">
                       <span className="sr-only">Actions</span>
@@ -146,34 +161,18 @@ export default function Index({ auth, roles, filters, flash }) {
                         </div>
                       </td>
                       
-                      {/* Permissions List */}
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-1 max-w-md">
-                          {role.permissions.slice(0, 3).map((permission) => (
-                            <span
-                              key={permission.id}
-                              className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800"
-                            >
-                              {permission.name}
-                            </span>
-                          ))}
-                          {role.permissions.length > 3 && (
-                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-600">
-                              +{role.permissions.length - 3} more
-                            </span>
-                          )}
+                      {/* Users Count */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <Users className="w-4 h-4 text-gray-400 mr-2" />
+                          <span className="text-sm text-gray-900 font-medium">
+                            {role.users_count || 0}
+                          </span>
+                          <span className="text-sm text-gray-500 ml-1">users</span>
                         </div>
                       </td>
                       
-                      {/* Permission Count */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900 font-medium">
-                          {role.permissions.length}
-                        </span>
-                        <span className="text-sm text-gray-500 ml-1">permissions</span>
-                      </td>
-                      
-                      {/* Date */}
+                      {/* Created At */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(role.created_at).toLocaleDateString('id-ID', {
                           day: 'numeric',
@@ -186,7 +185,14 @@ export default function Index({ auth, roles, filters, flash }) {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">
                           <Link
-                            href={`/roles/${role.id}/edit`}
+                            href={route('roles.show', role.id)}
+                            className="text-gray-400 hover:text-blue-600"
+                            title="View Role"
+                          >
+                            <Eye size={16} />
+                          </Link>
+                          <Link
+                            href={route('roles.edit', role.id)}
                             className="text-gray-400 hover:text-gray-900"
                             title="Edit Role"
                           >
@@ -196,6 +202,7 @@ export default function Index({ auth, roles, filters, flash }) {
                             onClick={() => handleDelete(role)}
                             className="text-gray-400 hover:text-red-600"
                             title="Delete Role"
+                            disabled={role.users_count > 0}
                           >
                             <Trash2 size={16} />
                           </button>

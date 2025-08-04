@@ -1,36 +1,63 @@
 // resources/js/Layouts/AppLayout.jsx
-import React from 'react';
-import { Link } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { X } from 'lucide-react';
 import Sidebar from '@/Components/Sidebar';
+import Header from '@/Components/Header';
 
-export default function AppLayout({ children, user }) {
+export default function AppLayout({ children, title = "Dashboard" }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
-    <div className="flex min-h-screen bg-gray-900">
-      <Sidebar />
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-50 bg-black bg-opacity-50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-      {/* Main content with left margin to account for fixed sidebar */}
-      <main className="flex-1 ml-64 bg-gray-50 min-h-screen">
-        <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4 mb-6 sticky top-0 z-30">
-          <div className="flex justify-between items-center">
-            <h1 className="text-xl font-semibold text-gray-800">Selamat Datang</h1>
-            <Link 
-              href="/logout" 
-              method="post" 
-              as="button" 
-              className="flex items-center gap-2 px-3 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors duration-200"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Logout
-            </Link>
-          </div>
-        </header>
+      {/* Sidebar - with mobile responsiveness */}
+      <div className={`
+        fixed lg:static inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out lg:transform-none
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        <Sidebar />
+        {/* Mobile close button */}
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className="absolute top-4 right-4 lg:hidden text-white hover:text-gray-300"
+        >
+          <X size={20} />
+        </button>
+      </div>
 
-        {/* Scrollable content area */}
-        <div className="px-6 pb-6">
+      {/* Main content */}
+      <main className="flex-1 lg:ml-64 bg-gray-50 min-h-screen flex flex-col">
+        {/* Header */}
+        <Header 
+          title={title} 
+          onToggleSidebar={() => setSidebarOpen(true)} 
+        />
+
+        {/* Content area */}
+        <div className="flex-1 px-4 sm:px-6 py-6 overflow-auto">
           {children}
         </div>
+
+        {/* Footer */}
+        <footer className="bg-white border-t border-gray-200 px-4 sm:px-6 py-4 mt-auto">
+          <div className="flex flex-col sm:flex-row justify-between items-center text-sm text-gray-500">
+            <p>&copy; 2025 UMKMPOS. All rights reserved.</p>
+            <div className="flex items-center gap-4 mt-2 sm:mt-0">
+              <span>Version 1.0.0</span>
+              <span>•</span>
+              <a href="/help" className="hover:text-gray-700">Help</a>
+              <span>•</span>
+              <a href="/support" className="hover:text-gray-700">Support</a>
+            </div>
+          </div>
+        </footer>
       </main>
     </div>
   );

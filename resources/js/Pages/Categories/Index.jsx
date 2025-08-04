@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { Search, Plus, Edit, Trash2, User, Eye, Phone } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Tag, Eye, Package } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
 
-export default function Index({ auth, users, flash }) {
+export default function Index({ auth, categories, flash }) {
   const [search, setSearch] = useState('');
 
   // Handle search dengan debounce
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      router.get(route('users.index'), 
+      router.get(route('categories.index'), 
         { 
           search: search || undefined
         }, 
@@ -23,14 +23,14 @@ export default function Index({ auth, users, flash }) {
     return () => clearTimeout(timeoutId);
   }, [search]);
 
-  const handleDelete = (user) => {
-    if (user.id === auth.user.id) {
-      alert('Anda tidak dapat menghapus akun Anda sendiri.');
+  const handleDelete = (category) => {
+    if (category.products_count > 0) {
+      alert('Tidak dapat menghapus kategori yang masih memiliki produk.');
       return;
     }
 
-    if (confirm(`Apakah Anda yakin ingin menghapus user ${user.name}?`)) {
-      router.delete(route('users.destroy', user.id), {
+    if (confirm(`Apakah Anda yakin ingin menghapus kategori ${category.name}?`)) {
+      router.delete(route('categories.destroy', category.id), {
         onError: (errors) => {
           if (errors.error) {
             alert(errors.error);
@@ -112,14 +112,14 @@ export default function Index({ auth, users, flash }) {
     );
   };
 
-  const filteredUsers = users.data.filter(user => 
-    user.name.toLowerCase().includes(search.toLowerCase()) ||
-    user.email.toLowerCase().includes(search.toLowerCase())
+  const filteredCategories = categories.data.filter(category => 
+    category.name.toLowerCase().includes(search.toLowerCase()) ||
+    (category.description && category.description.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
     <AppLayout user={auth.user}>
-      <Head title="Manajemen Users" />
+      <Head title="Manajemen Categories" />
 
       <div className="min-h-screen bg-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -127,17 +127,17 @@ export default function Index({ auth, users, flash }) {
           <div className="border-b border-slate-200 pb-6 mb-8">
             <div className="flex justify-between items-start">
               <div>
-                <h1 className="text-2xl font-semibold text-slate-900">Users</h1>
+                <h1 className="text-2xl font-semibold text-slate-900">Categories</h1>
                 <p className="text-slate-600 mt-2">
-                  Daftar semua pengguna dalam sistem termasuk nama, email, dan peran mereka.
+                  Daftar semua kategori produk dalam sistem termasuk nama, deskripsi, dan jumlah produk.
                 </p>
               </div>
               <Link
-                href={route('users.create')}
+                href={route('categories.create')}
                 className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2 rounded-md font-medium inline-flex items-center"
               >
                 <Plus size={16} className="mr-2" />
-                Add user
+                Add category
               </Link>
             </div>
           </div>
@@ -177,7 +177,7 @@ export default function Index({ auth, users, flash }) {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
                 <input
                   type="text"
-                  placeholder="Search users by name or email"
+                  placeholder="Search categories by name or description"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-1 focus:ring-slate-900 focus:border-slate-900 text-sm"
@@ -187,20 +187,20 @@ export default function Index({ auth, users, flash }) {
             
             {/* Results Count */}
             <div className="text-sm text-slate-700">
-              <span className="font-medium">{users.total}</span> users
+              <span className="font-medium">{categories.total}</span> categories
             </div>
           </div>
 
-          {/* Users Table */}
+          {/* Categories Table */}
           <div className="bg-white shadow-sm ring-1 ring-slate-900/5 rounded-lg overflow-hidden">
-            {filteredUsers.length === 0 ? (
+            {filteredCategories.length === 0 ? (
               <div className="px-6 py-12 text-center">
                 <div className="flex flex-col items-center">
                   <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                    <User className="w-6 h-6 text-slate-400" />
+                    <Tag className="w-6 h-6 text-slate-400" />
                   </div>
-                  <h3 className="text-lg font-medium text-slate-900 mb-2">Tidak ada user ditemukan</h3>
-                  <p className="text-slate-500">Coba ubah kata kunci pencarian atau tambah user baru</p>
+                  <h3 className="text-lg font-medium text-slate-900 mb-2">Tidak ada kategori ditemukan</h3>
+                  <p className="text-slate-500">Coba ubah kata kunci pencarian atau tambah kategori baru</p>
                 </div>
               </div>
             ) : (
@@ -208,19 +208,19 @@ export default function Index({ auth, users, flash }) {
                 <thead className="bg-slate-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      User
+                      Category
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Contact
+                      Description
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Role
+                      Products
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Date added
+                      Date created
                     </th>
                     <th className="relative px-6 py-3">
                       <span className="sr-only">Actions</span>
@@ -228,70 +228,63 @@ export default function Index({ auth, users, flash }) {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
-                  {filteredUsers.map((user) => (
-                    <tr key={user.id} className="hover:bg-slate-50">
-                      {/* User Info */}
+                  {filteredCategories.map((category) => (
+                    <tr key={category.id} className="hover:bg-slate-50">
+                      {/* Category Info */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="h-10 w-10 flex-shrink-0">
-                            <div className="h-10 w-10 rounded-full bg-slate-900 flex items-center justify-center">
-                              <span className="text-sm font-medium text-white">
-                                {user.name.charAt(0).toUpperCase()}
-                              </span>
+                            <div 
+                              className="h-10 w-10 rounded-full flex items-center justify-center"
+                              style={{ 
+                                backgroundColor: category.color || '#475569',
+                                color: 'white'
+                              }}
+                            >
+                              <Tag size={16} />
                             </div>
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-slate-900">{user.name}</div>
-                            <div className="text-sm text-slate-500">ID: {user.id}</div>
+                            <div className="text-sm font-medium text-slate-900">{category.name}</div>
+                            <div className="text-sm text-slate-500">ID: {category.id}</div>
                           </div>
                         </div>
                       </td>
 
-                      {/* Contact Info */}
+                      {/* Description */}
                       <td className="px-6 py-4">
-                        <div className="text-sm text-slate-900">{user.email}</div>
-                        {user.phone && (
-                          <div className="text-sm text-slate-500 flex items-center mt-1">
-                            <Phone size={12} className="mr-1" />
-                            {user.phone}
-                          </div>
-                        )}
+                        <div className="text-sm text-slate-900 max-w-xs">
+                          {category.description ? (
+                            <span className="line-clamp-2">{category.description}</span>
+                          ) : (
+                            <span className="text-slate-400 italic">No description</span>
+                          )}
+                        </div>
                       </td>
                       
-                      {/* Roles */}
+                      {/* Products Count */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-wrap gap-1">
-                          {user.roles && user.roles.length > 0 ? (
-                            user.roles.map((role) => (
-                              <span
-                                key={role.id}
-                                className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-800"
-                              >
-                                {role.name}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                              No Role
-                            </span>
-                          )}
+                        <div className="flex items-center text-sm text-slate-900">
+                          <Package size={14} className="mr-1 text-slate-400" />
+                          <span className="font-medium">{category.products_count}</span>
+                          <span className="text-slate-500 ml-1">products</span>
                         </div>
                       </td>
                       
                       {/* Status */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          user.is_active 
+                          category.is_active 
                             ? 'bg-green-100 text-green-800'
                             : 'bg-red-100 text-red-800'
                         }`}>
-                          {user.is_active ? 'Active' : 'Inactive'}
+                          {category.is_active ? 'Active' : 'Inactive'}
                         </span>
                       </td>
                       
                       {/* Date */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                        {new Date(user.created_at).toLocaleDateString('id-ID', {
+                        {new Date(category.created_at).toLocaleDateString('id-ID', {
                           day: 'numeric',
                           month: 'short',
                           year: 'numeric'
@@ -302,26 +295,26 @@ export default function Index({ auth, users, flash }) {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">
                           <Link
-                            href={route('users.show', user.id)}
+                            href={route('categories.show', category.id)}
                             className="text-slate-400 hover:text-blue-600"
-                            title="View User"
+                            title="View Category"
                           >
                             <Eye size={16} />
                           </Link>
                           <Link
-                            href={route('users.edit', user.id)}
+                            href={route('categories.edit', category.id)}
                             className="text-slate-400 hover:text-slate-900"
-                            title="Edit User"
+                            title="Edit Category"
                           >
                             <Edit size={16} />
                           </Link>
                           <button
-                            onClick={() => handleDelete(user)}
+                            onClick={() => handleDelete(category)}
                             className={`text-slate-400 hover:text-red-600 ${
-                              user.id === auth.user.id ? 'opacity-50 cursor-not-allowed' : ''
+                              category.products_count > 0 ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
-                            title={user.id === auth.user.id ? 'Cannot delete your own account' : 'Delete User'}
-                            disabled={user.id === auth.user.id}
+                            title={category.products_count > 0 ? 'Cannot delete category with products' : 'Delete Category'}
+                            disabled={category.products_count > 0}
                           >
                             <Trash2 size={16} />
                           </button>
@@ -334,9 +327,9 @@ export default function Index({ auth, users, flash }) {
             )}
 
             {/* Pagination */}
-            {users.data.length > 0 && (
+            {categories.data.length > 0 && (
               <div className="px-6 pb-4">
-                <Pagination links={users.links} meta={users} />
+                <Pagination links={categories.links} meta={categories} />
               </div>
             )}
           </div>
