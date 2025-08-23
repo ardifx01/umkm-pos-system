@@ -53,6 +53,16 @@ class User extends Authenticatable
         return $this->hasMany(Purchase::class);
     }
 
+    public function cashRegisters()
+    {
+        return $this->hasMany(CashRegister::class);
+    }
+
+    public function currentCashRegister()
+    {
+        return $this->hasOne(CashRegister::class)->where('status', 'open');
+    }
+
     // Helper methods
     public function isOwner(): bool
     {
@@ -79,6 +89,27 @@ class User extends Authenticatable
         return $this->can('process refunds');
     }
 
+    public function hasOpenCashRegister()
+    {
+        return $this->currentCashRegister()->exists();
+    }
+
+    public function openCashRegister($openingBalance = 0, $notes = null)
+    {
+        if ($this->hasOpenCashRegister()) {
+            return false; // User already has open cash register
+        }
+
+        return CashRegister::create([
+            'user_id' => $this->id,
+            'opening_balance' => $openingBalance,
+            'shift_number' => CashRegister::generateShiftNumber(),
+            'opened_at' => now(),
+            'status' => 'open',
+            'notes' => $notes
+        ]);
+    }
+
     // Scope
     public function scopeActive($query)
     {
@@ -89,4 +120,6 @@ class User extends Authenticatable
     {
         return $this->getAllPermissions();
     }
+
+    
 }

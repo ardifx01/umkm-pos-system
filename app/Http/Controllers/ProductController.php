@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class ProductController extends Controller
@@ -31,6 +32,13 @@ class ProductController extends Controller
 
         $products = $query->latest()->paginate(10);
         $categories = Category::active()->get();
+
+        $products->getCollection()->transform(function ($product) {
+            if ($product->image) {
+                $product->image = asset('storage/' . $product->image);
+            }
+            return $product;
+        });
 
         return Inertia::render('Products/Index', compact('products', 'categories'));
     }
@@ -58,16 +66,30 @@ class ProductController extends Controller
             'max_stock' => 'nullable|integer|min:0',
             'is_perishable' => 'boolean',
             'expired_date' => 'nullable|date|after:today',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Add image validation
         ]);
 
-        $product = Product::create([
-            'user_id' => auth()->id(),
-            ...$request->all(),
-            'is_active' => true,
-        ]);
+        $data = $request->all();
+        $data['user_id'] = auth()->id();
+        $data['is_active'] = true;
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            try {
+                // Store image in public/storage/products directory
+                $imagePath = $request->file('image')->store('products', 'public');
+                $data['image'] = $imagePath;
+            } catch (\Exception $e) {
+                return redirect()->back()
+                    ->withErrors(['image' => 'Failed to upload image: ' . $e->getMessage()])
+                    ->withInput();
+            }
+        }
+
+        $product = Product::create($data);
 
         // Create initial stock movement
-        $product->updateStock(0, 'initial', null, null, 'Initial stock entry');
+        $product->updateStock(0, 'initial', null, 'initial', 'Initial stock entry');
 
         return redirect()->route('products.index')
             ->with('success', 'Product created successfully.');
@@ -103,15 +125,36 @@ class ProductController extends Controller
             'max_stock' => 'nullable|integer|min:0',
             'is_perishable' => 'boolean',
             'expired_date' => 'nullable|date|after:today',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $oldStock = $product->stock;
-        $product->update($request->all());
+        $data = $request->all();
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            try {
+                // Delete old image if exists
+                if ($product->image && Storage::disk('public')->exists($product->image)) {
+                    Storage::disk('public')->delete($product->image);
+                }
+
+                // Store new image
+                $imagePath = $request->file('image')->store('products', 'public');
+                $data['image'] = $imagePath;
+            } catch (\Exception $e) {
+                return redirect()->back()
+                    ->withErrors(['image' => 'Failed to upload image: ' . $e->getMessage()])
+                    ->withInput();
+            }
+        }
+
+        $product->update($data);
 
         // Track stock changes
         if ($oldStock != $request->stock) {
             $difference = $request->stock - $oldStock;
-            $product->updateStock($difference, 'adjustment', null, null, 'Stock adjusted via product edit');
+            $product->updateStock($difference, 'adjustment', $product->id, 'product_adjustment', 'Stock adjusted via product edit');
         }
 
         return redirect()->route('products.index')
@@ -120,6 +163,11 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        // Delete image if exists
+        if ($product->image && Storage::disk('public')->exists($product->image)) {
+            Storage::disk('public')->delete($product->image);
+        }
+
         $product->delete();
 
         return redirect()->route('products.index')

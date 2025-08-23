@@ -14,13 +14,18 @@ return new class extends Migration
         Schema::create('purchases', function (Blueprint $table) {
             $table->id();
             $table->string('invoice_number')->unique();
-            $table->foreignId('supplier_id')->constrained('suppliers');
-            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('supplier_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->date('purchase_date');
-            $table->decimal('total_amount', 12, 2);
+            $table->decimal('total_amount', 15, 2)->default(0);
             $table->enum('status', ['pending', 'received', 'cancelled'])->default('pending');
             $table->text('notes')->nullable();
             $table->timestamps();
+
+            $table->index(['supplier_id', 'status']);
+            $table->index(['user_id', 'status']);
+            $table->index('purchase_date');
+            $table->index('invoice_number');
         });
     }
 

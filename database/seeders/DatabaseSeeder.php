@@ -11,17 +11,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        
-
         $this->call([
             RoleAndPermissionSeeder::class,
-            UserSeeder::class,
-            CategorySeeder::class, 
-            SupplierSeeder::class,
-            ProductSeeder::class,
-            CustomerSeeder::class,
-            // SaleSeeder::class, 
-            // PurchaseSeeder::class, 
+            PaymentMethodSeeder::class,
+            TaxSeeder::class,
+            CategorySeeder::class,
+            SettingSeeder::class,
+            UserSeeder::class, // Buat seeder ini untuk user default
         ]);
     }
 }

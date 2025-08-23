@@ -14,16 +14,21 @@ return new class extends Migration
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('phone', 15)->unique(); // Perbaikan: string dan unique
-            $table->string('email')->unique()->nullable(); // Perbaikan: unique constraint
-            $table->text('address')->nullable(); // Perbaikan: typo dan tipe data
-            $table->date('birth_date')->nullable(); // Tambahan: untuk program loyalty
-            $table->enum('gender', ['male', 'female'])->nullable();
-            $table->decimal('total_spent', 12, 2)->default(0); // Tambahan: tracking spending
-            $table->integer('visit_count')->default(0); // Tambahan: tracking visits
+            $table->string('phone')->nullable();
+            $table->string('email')->nullable();
+            $table->text('address')->nullable();
+            $table->date('birth_date')->nullable();
+            $table->enum('gender', ['male', 'female', 'other'])->nullable();
+            $table->decimal('total_spent', 15, 2)->default(0);
+            $table->integer('visit_count')->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index(['is_active', 'name']);
+            $table->index('phone');
+            $table->index('email');
+            $table->index('total_spent');
         });
     }
 

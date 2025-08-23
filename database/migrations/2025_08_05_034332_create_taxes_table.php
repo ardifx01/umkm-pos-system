@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('suppliers', function (Blueprint $table) {
+        Schema::create('taxes', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('contact_person')->nullable();
-            $table->string('phone', 15)->nullable();
-            $table->string('email')->nullable();
-            $table->text('address')->nullable();
+            $table->string('code')->unique();
+            $table->decimal('rate', 5, 2); // e.g., 11.00 for 11%
+            $table->boolean('is_inclusive')->default(false);
             $table->boolean('is_active')->default(true);
+            $table->text('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index(['is_active', 'code']);
         });
     }
 
@@ -29,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('suppliers');
+        Schema::dropIfExists('taxes');
     }
 };

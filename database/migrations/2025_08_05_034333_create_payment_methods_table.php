@@ -11,14 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('categories', function (Blueprint $table) {
+        Schema::create('payment_methods', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->text('description')->nullable(); 
-            $table->string('color', 7)->default('#3B82F6'); 
+            $table->string('code')->unique();
+            $table->string('icon')->nullable();
+            $table->boolean('requires_reference')->default(false);
+            $table->decimal('fee_percentage', 5, 2)->default(0);
+            $table->decimal('fee_amount', 10, 2)->default(0);
             $table->boolean('is_active')->default(true);
+            $table->integer('sort_order')->default(0);
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index(['is_active', 'sort_order']);
         });
     }
 
@@ -27,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('categories');
+        Schema::dropIfExists('payment_methods');
     }
 };

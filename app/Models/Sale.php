@@ -11,7 +11,11 @@ class Sale extends Model
 
     protected $fillable = [
         'invoice_number',
-        'user_id', 
+        'user_id',
+        'customer_id',
+        'cash_register_id', 
+        'payment_method_id', 
+        'tax_id', 
         'sale_date',
         'subtotal',
         'tax_amount',
@@ -19,12 +23,15 @@ class Sale extends Model
         'total',
         'cash_received',
         'change_returned',
+        'payment_reference', 
         'note',
-        'customer_id',
-        'payment_method',
         'status',
-        'table_number',  
+        'table_number',
         'order_type',
+        'refund_reason', 
+        'refunded_at', 
+        'refunded_by', 
+        'print_count', 
         'completed_at'
     ];
 
@@ -36,7 +43,9 @@ class Sale extends Model
         'total' => 'decimal:2',
         'cash_received' => 'decimal:2',
         'change_returned' => 'decimal:2',
+        'print_count' => 'integer',
         'completed_at' => 'datetime',
+        'refunded_at' => 'datetime',
     ];
 
     // Relationships
@@ -53,6 +62,26 @@ class Sale extends Model
     public function saleItems()
     {
         return $this->hasMany(SaleItem::class);
+    }
+
+    public function cashRegister()
+    {
+        return $this->belongsTo(CashRegister::class);
+    }
+
+    public function paymentMethod()
+    {
+        return $this->belongsTo(PaymentMethod::class);
+    }
+
+    public function tax()
+    {
+        return $this->belongsTo(Tax::class);
+    }
+
+    public function refundedBy()
+    {
+        return $this->belongsTo(User::class, 'refunded_by');
     }
 
     // Scopes
@@ -88,8 +117,56 @@ class Sale extends Model
     public function calculateTotals()
     {
         $this->subtotal = $this->saleItems()->sum('subtotal');
+        
+        // Calculate tax
+        if ($this->tax && $this->tax->is_active) {
+            $this->tax_amount = $this->tax->calculateTax($this->subtotal);
+        }
+        
         $this->total = $this->subtotal + $this->tax_amount - $this->discount_amount;
         $this->change_returned = max(0, $this->cash_received - $this->total);
         $this->save();
+        
+        return $this;
+    }
+
+    public function processRefund($reason = null, $userId = null)
+    {
+        if ($this->status !== 'completed') {
+            return false;
+        }
+
+        // Return stock for tracked products
+        foreach ($this->saleItems as $item) {
+            if ($item->product && $item->product->track_stock) {
+                $item->product->updateStock(
+                    $item->quantity,
+                    'in',
+                    'refund',
+                    $this->id,
+                    "Refund for sale {$this->invoice_number}"
+                );
+            }
+        }
+
+        // Update cash register if still open
+        if ($this->cashRegister && $this->cashRegister->status === 'open') {
+            $this->cashRegister->total_refunds += $this->total;
+            
+            if ($this->paymentMethod && $this->paymentMethod->code === 'cash') {
+                $this->cashRegister->total_cash_sales -= $this->total;
+            }
+            
+            $this->cashRegister->save();
+        }
+
+        $this->update([
+            'status' => 'refunded',
+            'refund_reason' => $reason,
+            'refunded_at' => now(),
+            'refunded_by' => $userId ?? auth()->id()
+        ]);
+
+        return true;
     }
 }
