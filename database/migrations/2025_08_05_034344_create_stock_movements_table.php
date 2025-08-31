@@ -25,7 +25,7 @@ return new class extends Migration
                 'return',       // Return
                 'damage',       // Kerusakan
                 'transfer'      // Transfer
-            ])->change();
+            ]);
             $table->integer('quantity');
             $table->integer('stock_before');
             $table->integer('stock_after');

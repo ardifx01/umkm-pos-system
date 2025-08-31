@@ -16,7 +16,10 @@ import {
   UserCheck,
   Truck,
   ShoppingBag,
-  Package2
+  Package2,
+  Calculator,
+  CreditCard,
+  AlertCircle
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -25,13 +28,18 @@ export default function Sidebar() {
 
   const isActive = (route) => url.startsWith(route);
 
-  const menuItems = [
+  // Core System Menu Items
+  const coreMenuItems = [
     { 
       href: '/dashboard',
       label: 'Dashboard', 
       icon: LayoutDashboard,
       badge: null
-    },
+    }
+  ];
+
+  // Product Management Menu Items
+  const productMenuItems = [
     {
       href: '/products', 
       label: 'Products', 
@@ -42,30 +50,6 @@ export default function Sidebar() {
       href: '/categories', 
       label: 'Categories', 
       icon: ListFilterIcon, 
-      badge: null, 
-    },
-    { 
-      href: '/sales', 
-      label: 'Sales / POS', 
-      icon: ShoppingCart,
-      badge: '12' // Example badge
-    },
-    {
-      href: '/customers', 
-      label: 'Customers', 
-      icon: UserCheck,
-      badge: null
-    },
-    {
-      href: '/suppliers', 
-      label: 'Suppliers', 
-      icon: Truck,
-      badge: null
-    },
-    {
-      href: '/purchases', 
-      label: 'Purchases', 
-      icon: ShoppingBag,
       badge: null
     },
     {
@@ -73,7 +57,59 @@ export default function Sidebar() {
       label: 'Stock Movements', 
       icon: Package2,
       badge: null
+    }
+  ];
+
+  // Sales & Customer Menu Items
+  const salesMenuItems = [
+    { 
+      href: '/sales', 
+      label: 'Sales / POS', 
+      icon: ShoppingCart,
+      badge: null
     },
+    {
+      href: '/customers', 
+      label: 'Customers', 
+      icon: UserCheck,
+      badge: null
+    }
+  ];
+
+  // Purchase & Supplier Menu Items
+  const purchaseMenuItems = [
+    {
+      href: '/purchases', 
+      label: 'Purchases', 
+      icon: ShoppingBag,
+      badge: null
+    },
+    {
+      href: '/suppliers', 
+      label: 'Suppliers', 
+      icon: Truck,
+      badge: null
+    }
+  ];
+
+  // System Configuration Menu Items
+  const configMenuItems = [
+    {
+      href: '/taxes', 
+      label: 'Tax Settings', 
+      icon: Calculator,
+      badge: null
+    },
+    {
+      href: '/payment-methods', 
+      label: 'Payment Methods', 
+      icon: CreditCard,
+      badge: null
+    }
+  ];
+
+  // Reports & Administration Menu Items
+  const adminMenuItems = [
     { 
       href: '/reports', 
       label: 'Reports', 
@@ -91,13 +127,7 @@ export default function Sidebar() {
       label: 'Roles & Permissions', 
       icon: Shield,
       badge: null
-    },
-    {
-      href: '/profile', 
-      label: 'Profile Settings', 
-      icon: Settings,
-      badge: null
-    },
+    }
   ];
 
   const renderMenuItem = (item) => {
@@ -154,41 +184,102 @@ export default function Sidebar() {
             <h2 className="text-white font-bold text-xl leading-tight">
               UMKM<span className="text-emerald-400">POS</span>
             </h2>
-            <p className="text-slate-400 text-xs">Point of Sale</p>
+            <p className="text-slate-400 text-xs">Point of Sale System</p>
           </div>
+        </div>
+      </div>
+
+      {/* Development Status Info */}
+      <div className="px-4 py-3 bg-slate-800/30 border-b border-slate-700/50">
+        <div className="flex items-center gap-2 text-xs text-slate-400">
+          <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+          <span>UMKM POS Management System</span>
         </div>
       </div>
 
       {/* Navigation Menu */}
       <nav className="flex-1 px-4 py-6 overflow-y-auto custom-scrollbar">
         <div className="space-y-2">
-          {/* Main Navigation */}
+          {/* Dashboard */}
           <div className="mb-6">
             <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-4">
-              Main
+              Dashboard
             </h3>
             <div className="space-y-1">
-              {menuItems.slice(0, 4).map(renderMenuItem)}
+              {coreMenuItems.map(renderMenuItem)}
             </div>
           </div>
 
-          {/* Inventory Management */}
+          {/* Product Management */}
           <div className="mb-6">
             <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-4">
-              Inventory
+              Product Management
             </h3>
             <div className="space-y-1">
-              {menuItems.slice(4, 8).map(renderMenuItem)}
+              {productMenuItems.map(renderMenuItem)}
             </div>
           </div>
 
-          {/* Administration */}
+          {/* Sales & Customer */}
           <div className="mb-6">
             <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-4">
-              Administration
+              Sales & Customer
             </h3>
             <div className="space-y-1">
-              {menuItems.slice(8).map(renderMenuItem)}
+              {salesMenuItems.map(renderMenuItem)}
+            </div>
+          </div>
+
+          {/* Purchase & Supplier */}
+          <div className="mb-6">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-4">
+              Purchase & Supplier
+            </h3>
+            <div className="space-y-1">
+              {purchaseMenuItems.map(renderMenuItem)}
+            </div>
+          </div>
+
+          {/* Configuration */}
+          <div className="mb-6">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-4">
+              Configuration
+            </h3>
+            <div className="space-y-1">
+              {configMenuItems.map(renderMenuItem)}
+            </div>
+          </div>
+
+          {/* Reports & Administration */}
+          <div className="mb-6">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-4">
+              Reports & Administration
+            </h3>
+            <div className="space-y-1">
+              {adminMenuItems.map(renderMenuItem)}
+            </div>
+          </div>
+
+          {/* Settings */}
+          <div className="mb-6">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-4">
+              Settings
+            </h3>
+            <div className="space-y-1">
+              <Link
+                href="/profile"
+                className={`
+                  flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative
+                  ${isActive('/profile') 
+                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20' 
+                    : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+                  }
+                `}
+              >
+                <Settings size={20} className={isActive('/profile') ? 'text-white' : 'text-slate-400 group-hover:text-emerald-400'} />
+                <span>Profile Settings</span>
+                {isActive('/profile') && <div className="w-2 h-2 bg-white rounded-full"></div>}
+              </Link>
             </div>
           </div>
         </div>
@@ -227,7 +318,7 @@ export default function Sidebar() {
                 </Link>
                 <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors duration-200">
                   <Settings size={16} />
-                  <span>Preferences</span>
+                  <span>System Preferences</span>
                 </button>
                 <div className="border-t border-slate-700/50 my-2"></div>
                 <Link
@@ -244,6 +335,26 @@ export default function Sidebar() {
           )}
         </div>
       </div>
+
+      {/* Custom Scrollbar Styles */}
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgb(71 85 105 / 0.5);
+          border-radius: 2px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgb(71 85 105 / 0.7);
+        }
+      `}</style>
     </aside>  
   );
 }

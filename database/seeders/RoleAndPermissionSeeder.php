@@ -28,13 +28,14 @@ class RoleAndPermissionSeeder extends Seeder
             'create products',
             'edit products',
             'delete products',
-            
-            // Inventory Management
-            'manage inventory',
-            'view inventory',
-            'adjust stock',
-            'view stock movements',
-            
+
+            // Stock Movement Management
+            'manage stock movements',    // untuk owner - full access
+            'view stock movements',      // untuk semua role yang bisa lihat
+            'create stock movements',    // untuk create/store
+            'edit stock movements',      // untuk update notes saja
+            'delete stock movements',    // untuk destroy
+
             // Sales Management
             'manage sales',
             'view sales',
@@ -77,9 +78,13 @@ class RoleAndPermissionSeeder extends Seeder
             'view settings',
             
             // Categories & Taxes
-            'manage categories',
-            'manage taxes',
-            'manage payment methods',
+            'manage taxes',         // untuk owner - full access
+            'view taxes',          // untuk semua role yang bisa lihat
+            'create taxes',        // untuk create/store
+            'edit taxes',          // untuk update
+            'delete taxes',        // untuk destroy/soft delete
+            'restore taxes',       // untuk restore soft deleted taxes
+
         ];
 
         foreach ($permissions as $permission) {
@@ -100,7 +105,7 @@ class RoleAndPermissionSeeder extends Seeder
             'manage customers', 'view customers', 'create customers', 'edit customers',
             'manage suppliers', 'view suppliers', 'create suppliers', 'edit suppliers',
             'view reports', 'export reports', 'view financial reports', 'view inventory reports',
-            'manage categories', 'manage taxes', 'manage payment methods',
+            'manage categories', 'manage taxes', 'manage payment methods', 'view taxes',
         ]);
 
         $cashier = Role::create(['name' => 'cashier']);

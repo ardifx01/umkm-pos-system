@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             SettingSeeder::class,
             UserSeeder::class, // Buat seeder ini untuk user default
+            SupplierSeeder::class,
         ]);
     }
 }

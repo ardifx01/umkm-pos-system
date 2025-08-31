@@ -40,6 +40,26 @@ class TaxController extends Controller
     }
 
     /**
+     * Show the form for creating a new tax.
+     * Returns empty tax structure with default values.
+     */
+    public function create(): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'message' => 'Ready to create new tax',
+            'data' => [
+                'name' => '',
+                'code' => '',
+                'rate' => 0.00,
+                'is_inclusive' => false,
+                'is_active' => true,
+                'description' => ''
+            ]
+        ]);
+    }
+
+    /**
      * Store a newly created tax.
      */
     public function store(Request $request): JsonResponse
@@ -83,6 +103,15 @@ class TaxController extends Controller
         return response()->json([
             'success' => true,
             'data' => $tax->load(['products', 'sales'])
+        ]);
+    }
+
+    public function edit(Tax $tax): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'message' => 'Tax edit form data',
+            'data' => $tax
         ]);
     }
 
